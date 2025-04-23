@@ -1,0 +1,34 @@
+{
+  "hash": "3cfdc6d8",
+  "configHash": "5174e5a9",
+  "lockfileHash": "7264ddbd",
+  "browserHash": "35cdb58d",
+  "optimized": {
+    "ethers": {
+      "src": "../../node_modules/ethers/lib.esm/index.js",
+      "file": "ethers.js",
+      "fileHash": "c1bb8e7a",
+      "needsInterop": false
+    },
+    "react": {
+      "src": "../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "8ff50dad",
+      "needsInterop": true
+    },
+    "react-dom/client": {
+      "src": "../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "3c050539",
+      "needsInterop": true
+    }
+  },
+  "chunks": {
+    "chunk-TVFQMRVC": {
+      "file": "chunk-TVFQMRVC.js"
+    },
+    "chunk-G3PMV62Z": {
+      "file": "chunk-G3PMV62Z.js"
+    }
+  }
+}
