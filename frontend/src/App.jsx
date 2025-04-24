@@ -7,6 +7,8 @@ import SignerActions from "./components/SignerActions";
 import Unauthorized from "./components/Unauthorized";
 //import BundlePreview from "./components/BundlePreview";
 import PinataUploader from "./components/PinataUploader";
+import FolderUploader from "./components/FolderUploader";
+import GetSepoliaBalance from "./components/GetSepoliaBalance";
 import.meta.env.VITE_GATEWAY_URL
 import.meta.env.VITE_SERVER_URL
 function App() {
@@ -65,11 +67,31 @@ function App() {
               <DoctorActions contract={contract} />
               
               <PinataUploader />
+              <FolderUploader />
+              <GetSepoliaBalance />
               {/* <BundlePreview contract={contract} tokenId={1} />  */}
               {/* test with tokenId 1 */}
             </>
           )}
-          {(role === "Patient" || role === "Hospital") && <SignerActions contract={contract} />}
+          {role === "Patient" && (
+            <>
+              <SignerActions contract={contract} />
+      
+              <GetSepoliaBalance />
+              {/* <BundlePreview contract={contract} tokenId={1} />  */}
+              {/* test with tokenId 1 */}
+            </>
+          )}
+          {role === "Hospital" && (
+            <>
+              <SignerActions contract={contract} />
+        
+              <GetSepoliaBalance />
+              {/* <BundlePreview contract={contract} tokenId={1} />  */}
+              {/* test with tokenId 1 */}
+            </>
+          )}
+          {/* {(role === "Patient" || role === "Hospital") && <SignerActions contract={contract} />} */}
           {role === "Unknown" && <Unauthorized />}
         </div>
       )}
