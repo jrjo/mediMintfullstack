@@ -1,44 +1,66 @@
 import { useState, useEffect } from "react";
 
 function DoctorActions({ contract, walletAddress }) {
-  const [cid, setCid] = useState("");
-  const [hashID, setHashID] = useState("");
+  const [cid, setCid] = useState(localStorage.getItem('lastCID') || "");
+  const [hashID, setHashID] = useState(localStorage.getItem('lastHashID') || "");
   const [sigCount, setSigCount] = useState(0);
   const [required, setRequired] = useState(3);
+  const [copied, setCopied] = useState(false);
+  const [status, setStatus] = useState("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchSignatureCount = async () => {
       if (cid && contract) {
-        const hash = await contract.generateHashID(cid);
-        setHashID(hash);
-        const count = await contract.signatureCount(hash);
-        setSigCount(count.toNumber());
+        try {
+          const hash = await contract.generateBundleID(cid);
+          setHashID(hash);
+          const count = await contract.signatureWeights(hash);
+          setSigCount(count.toNumber());
+
+          // Save updated CID and hashID to localStorage
+          localStorage.setItem('lastCID', cid);
+          localStorage.setItem('lastHashID', hash);
+        } catch (err) {
+          console.error("Failed to fetch hash/signatures:", err);
+          setHashID("");
+          setSigCount(0);
+        }
+      } else {
+        setHashID("");
+        setSigCount(0);
       }
     };
     fetchSignatureCount();
   }, [cid, contract]);
 
   const handleRequestSignature = async (cid) => {
-    if (!cid || !contract) {
+    if (!cid) {
       alert("Please enter a CID first");
       return;
     }
-  
+    console.log("🔐 Requesting signature for CID:", cid);
     try {
-      console.log("🔐 Requesting signature for CID:", cid);
-      const tx = await contract.requestSignature(cid); // Directly use CID dan untuk manggil metamasknya
-      console.log("📤 Signature transaction sent:", tx.hash);
+      setStatus("⏳ Signing request...");
+      setLoading(true);
+      const tx = await contract.requestSignature(cid);
       await tx.wait();
-      alert("🖋️ Signature request submitted and doctor has signed");
-  
-      // Re-generate hash and update count after request
-      const hash = await contract.generateHashID(cid);
+      setStatus("🖋️ Signature request submitted!");
+      setLoading(false);
+
+      // 🔁 Manually refresh hashID and sigCount
+      const hash = await contract.generateBundleID(cid);
       setHashID(hash);
-      const count = await contract.signatureCount(hash);
+      const count = await contract.signatureWeights(hash);
       setSigCount(count.toNumber());
+
+      // Save again after request
+      localStorage.setItem('lastCID', cid);
+      localStorage.setItem('lastHashID', hash);
     } catch (err) {
-      console.error("❌ Signature request failed:", err);
-      alert("Signature request failed. See console for details.");
+      console.error("Signature request failed:", err);
+      setStatus("❌ Request failed");
+      setLoading(false);
     }
   };
 
@@ -48,31 +70,93 @@ function DoctorActions({ contract, walletAddress }) {
       return;
     }
     console.log("🪙 Minting NFT with CID and HashID:", cid, hashID);
-    await contract.mintBundle(cid, hashID);
+    try {
+      const tx = await contract.mintBundle(cid, hashID);
+      await tx.wait();
+      alert("✅ NFT minted!");
+
+      // ✅ After mint, clear localStorage
+      localStorage.removeItem('lastCID');
+      localStorage.removeItem('lastHashID');
+      setCid("");
+      setHashID("");
+      setSigCount(0);
+    } catch (err) {
+      console.error("Minting failed:", err);
+    }
+  };
+
+  const handleCopyHashID = async () => {
+    if (hashID) {
+      await navigator.clipboard.writeText(hashID);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    }
+  };
+
+  const handleClearCID = () => {
+    localStorage.removeItem('lastCID');
+    localStorage.removeItem('lastHashID');
+    setCid("");
+    setHashID("");
+    setSigCount(0);
+    setStatus("🧹 Cleared CID and HashID");
   };
 
   return (
     <div>
       <h3>Doctor Actions</h3>
-      <input
-        type="text"
-        value={cid}
-        onChange={(e) => setCid(e.target.value)}
-        placeholder="Enter IPFS CID"
-        style={{ marginBottom: "10px", display: "block" }}
-      />
+
+      <div style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
+        <input
+          type="text"
+          value={cid}
+          onChange={(e) => setCid(e.target.value)}
+          placeholder="Enter IPFS CID"
+          style={{ flex: 1, marginRight: "10px" }}
+        />
+      </div>
+      <button
+        onClick={handleClearCID}
+        disabled={loading}
+        style={{ marginLeft: "10px", backgroundColor: "#f8d7da", color: "#721c24", padding: "4px 8px", border: "1px solid #f5c6cb", borderRadius: "4px" }}
+      >
+        🧹 Clear CID
+      </button>
+
+      {hashID && (
+        <div style={{ marginBottom: "10px" }}>
+          <strong>HashID:</strong> <span style={{ wordBreak: "break-all" }}>{hashID}</span>
+          <button 
+            onClick={handleCopyHashID} 
+            style={{ marginLeft: "10px", padding: "4px 8px" }}
+          >
+            {copied ? "✅ Copied" : "📋 Copy"}
+          </button>
+        </div>
+      )}
+
       <p>
         ✍️ Signature Progress: <strong>{sigCount}</strong> / {required}
       </p>
+
+      {status && (
+        <p>
+          {loading && <span style={{ marginRight: "5px" }}>🔄</span>}
+          {status}
+        </p>
+      )}
+
       <button
         onClick={() => handleRequestSignature(cid)}
-        disabled={!cid}
+        disabled={!cid || loading}
       >
         🖋️ Request Signature
       </button>
+
       <button
         onClick={() => handleMintNFT(cid)}
-        disabled={!cid || sigCount < required}
+        disabled={!cid || sigCount < required || loading}
         style={{ marginLeft: "10px" }}
       >
         🪙 Mint NFT
