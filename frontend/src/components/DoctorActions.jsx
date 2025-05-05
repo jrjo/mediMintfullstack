@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import MetadataUpdater from "./MetadataUpdater";
 
 function DoctorActions({ contract, walletAddress }) {
   const [cid, setCid] = useState(localStorage.getItem('lastCID') || "");
@@ -71,9 +72,33 @@ function DoctorActions({ contract, walletAddress }) {
     }
     console.log("🪙 Minting NFT with CID and HashID:", cid, hashID);
     try {
+      setStatus("⏳ Minting NFT...");
+      setLoading(true);
       const tx = await contract.mintBundle(cid, hashID);
-      await tx.wait();
-      alert("✅ NFT minted!");
+      const receipt = await tx.wait();
+      
+      let mintedTokenId = null;
+      if (receipt && receipt.events) {
+        for (const event of receipt.events) {
+          if (event.event === "ImageBundleUploaded") {   // <--- Change to your correct event name
+            mintedTokenId = event.args.tokenId.toString();
+            break;
+          }
+        }
+      }
+    
+      if (!mintedTokenId) {
+        console.warn("⚠️ TokenId not found in events. Check your contract event.");
+        mintedTokenId = "Unknown";
+      }
+      // ✅ After mint, show info
+      setStatus(`✅ NFT minted!
+        \nContract Address: ${contract.address}
+        \nToken ID: ${mintedTokenId}
+        \n🔗 [View on Etherscan](https://etherscan.io/tx/${tx.hash})
+        \n🖼️ [View Image on IPFS](https://gateway.pinata.cloud/ipfs/${cid})
+      `);
+
 
       // ✅ After mint, clear localStorage
       localStorage.removeItem('lastCID');
@@ -83,7 +108,9 @@ function DoctorActions({ contract, walletAddress }) {
       setSigCount(0);
     } catch (err) {
       console.error("Minting failed:", err);
+      setStatus("❌ Minting failed");
     }
+    setLoading(false);
   };
 
   const handleCopyHashID = async () => {
@@ -161,7 +188,12 @@ function DoctorActions({ contract, walletAddress }) {
       >
         🪙 Mint NFT
       </button>
+      <hr />
+
+      <h4>🔄 Update Metadata</h4>
+      <MetadataUpdater contract={contract} />
     </div>
+    
   );
 }
 

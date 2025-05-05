@@ -4,11 +4,14 @@ import { CONTRACT_ADDRESS, CONTRACT_ABI } from "./components/contract";
 import MetamaskButton from "./components/MetamaskButton";
 import DoctorActions from "./components/DoctorActions";
 import SignerActions from "./components/SignerActions";
+import PatientActions from "./components/PatientActions";
+import HospitalActions from "./components/HospitalActions";
 import Unauthorized from "./components/Unauthorized";
 //import BundlePreview from "./components/BundlePreview";
 import PinataUploader from "./components/PinataUploader";
 import FolderUploader from "./components/FolderUploader";
 import GetSepoliaBalance from "./components/GetSepoliaBalance";
+
 import.meta.env.VITE_GATEWAY_URL
 import.meta.env.VITE_SERVER_URL
 function App() {
@@ -38,18 +41,33 @@ function App() {
       const doctor = await contractInstance.doctor();
       const patient = await contractInstance.patient();
       const hospital = await contractInstance.hospital();
+      const caller = await signer.getAddress();
   
       const addr = walletAddress.toLowerCase();
-      if (addr === doctor.toLowerCase()) setRole("Doctor");
-      else if (addr === patient.toLowerCase()) setRole("Patient");
-      else if (addr === hospital.toLowerCase()) setRole("Hospital");
-      else setRole("Unknown");
   
-      console.log("Role detected:", role);
+      console.log("🔍 Connected wallet address:", addr);
+      console.log("🏥 Contract's hospital:", hospital.toLowerCase());
+      console.log("🧑‍⚕️ Contract's doctor:", doctor.toLowerCase());
+      console.log("👤 Contract's patient:", patient.toLowerCase());
+  
+      if (addr === doctor.toLowerCase()) {
+        setRole("Doctor");
+        console.log("✅ Role detected: Doctor");
+      } else if (addr === patient.toLowerCase()) {
+        setRole("Patient");
+        console.log("✅ Role detected: Patient");
+      } else if (addr === hospital.toLowerCase()) {
+        setRole("Hospital");
+        console.log("✅ Role detected: Hospital");
+      } else {
+        setRole("Unknown");
+        console.log("⚠️ Role detected: Unknown");
+      }
     } catch (error) {
       console.error("Contract init error:", error);
     }
   }
+  
   
 
   return (
@@ -75,7 +93,7 @@ function App() {
           )}
           {role === "Patient" && (
             <>
-              <SignerActions contract={contract} />
+              <PatientActions contract={contract} />
       
               <GetSepoliaBalance />
               {/* <BundlePreview contract={contract} tokenId={1} />  */}
@@ -84,7 +102,7 @@ function App() {
           )}
           {role === "Hospital" && (
             <>
-              <SignerActions contract={contract} />
+              <HospitalActions contract={contract} />
         
               <GetSepoliaBalance />
               {/* <BundlePreview contract={contract} tokenId={1} />  */}

@@ -8,7 +8,7 @@ export const CONTRACT_ADDRESS = "0x0c0786F9c9296b05D7E4aCEB539b4F337E728211";// 
 
 // Replace with your ABI (from Remix or compilation)
 export const CONTRACT_ABI = [
-  {
+	{
 		"inputs": [
 			{
 				"internalType": "address",
@@ -195,6 +195,44 @@ export const CONTRACT_ABI = [
 			}
 		],
 		"name": "BundleTransferred",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "oldDoctor",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "newDoctor",
+				"type": "address"
+			}
+		],
+		"name": "DoctorChanged",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "oldHospital",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "newHospital",
+				"type": "address"
+			}
+		],
+		"name": "HospitalChanged",
 		"type": "event"
 	},
 	{
@@ -394,6 +432,42 @@ export const CONTRACT_ABI = [
 	{
 		"inputs": [
 			{
+				"internalType": "bytes32",
+				"name": "hashID",
+				"type": "bytes32"
+			},
+			{
+				"internalType": "address",
+				"name": "newDoctor",
+				"type": "address"
+			}
+		],
+		"name": "applyDoctorChange",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bytes32",
+				"name": "hashID",
+				"type": "bytes32"
+			},
+			{
+				"internalType": "address",
+				"name": "newHospital",
+				"type": "address"
+			}
+		],
+		"name": "applyHospitalChange",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
 				"internalType": "address",
 				"name": "account",
 				"type": "address"
@@ -466,6 +540,30 @@ export const CONTRACT_ABI = [
 				"internalType": "bytes32",
 				"name": "",
 				"type": "bytes32"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bytes32",
+				"name": "hashID",
+				"type": "bytes32"
+			}
+		],
+		"name": "getSignRequestStatus",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "exists",
+				"type": "bool"
+			},
+			{
+				"internalType": "uint256",
+				"name": "currentWeight",
+				"type": "uint256"
 			}
 		],
 		"stateMutability": "view",
@@ -555,6 +653,24 @@ export const CONTRACT_ABI = [
 	{
 		"inputs": [],
 		"name": "renounceOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "role",
+				"type": "string"
+			},
+			{
+				"internalType": "address",
+				"name": "newAddress",
+				"type": "address"
+			}
+		],
+		"name": "requestRoleChange",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
