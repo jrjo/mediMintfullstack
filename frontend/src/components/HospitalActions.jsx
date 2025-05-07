@@ -228,7 +228,7 @@ function HospitalActions({ contract }) {
         type="text"
         value={hashID}
         onChange={(e) => setHashID(e.target.value)}
-        placeholder="Enter HashID from Doctor"
+        placeholder="Enter HashID"
         style={{ marginBottom: "10px", display: "block" }}
       />
       <button onClick={handleSignRequest} disabled={!hashID}>

@@ -10,6 +10,9 @@ function DoctorActions({ contract, walletAddress }) {
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const [externalHashCID, setExternalHashCID] = useState(localStorage.getItem('externalCID') || "");
+  const [externalStatus, setExternalStatus] = useState("");
+
   useEffect(() => {
     const fetchSignatureCount = async () => {
       if (cid && contract) {
@@ -129,6 +132,22 @@ function DoctorActions({ contract, walletAddress }) {
     setSigCount(0);
     setStatus("🧹 Cleared CID and HashID");
   };
+  const handleSignRequest = async () => {
+    if (!externalHashCID) {
+      alert("Please enter a hash ID");
+      return;
+    }
+
+    try {
+      setStatus("⏳ Signing request...");
+      const tx = await contract.signRequest(externalHashCID);
+      await tx.wait();
+      setStatus("✅ Signature submitted successfully!");
+    } catch (error) {
+      console.error("Signing failed:", error);
+      setStatus("❌ Failed to sign request.");
+    }
+  };
 
   return (
     <div>
@@ -192,6 +211,22 @@ function DoctorActions({ contract, walletAddress }) {
 
       <h4>🔄 Update Metadata</h4>
       <MetadataUpdater contract={contract} />
+      <hr />
+      <h4>🖋️ Sign Request</h4>
+      <input
+        type="text"
+        value={externalHashCID}
+        onChange={(e) => {
+          setExternalHashCID(e.target.value);
+          localStorage.setItem('externalCID', e.target.value);
+        }}
+        placeholder="Enter HashID"
+        style={{ marginRight: "10px", display: "block", width: "100%", marginBottom: "10px" }}
+      />
+      <button onClick={handleSignRequest}>
+        ✍️ Sign request
+      </button>
+      {externalStatus && <p>{externalStatus}</p>}
     </div>
     
   );
