@@ -1,45 +1,62 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ethers } from "ethers";
 
-function GetSepoliaBalance() {
+function GetSepoliaBalance({ walletAddress }) {
   const [balanceInfo, setBalanceInfo] = useState({ address: "", eth: "" });
+  const [showBalance, setShowBalance] = useState(false);
+
+  useEffect(() => {
+    if (walletAddress) {
+      getMyEthBalance();
+    }
+  }, [walletAddress]);
 
   const getMyEthBalance = async () => {
     try {
       if (!window.ethereum) throw new Error("MetaMask is not available");
 
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
-      const signer = provider.getSigner();
-      const address = await signer.getAddress();
-
-      const balance = await provider.getBalance(address);
+      const balance = await provider.getBalance(walletAddress);
       const ethBalance = ethers.utils.formatEther(balance);
 
       setBalanceInfo({
-        address,
+        address: walletAddress,
         eth: ethBalance,
       });
+      setShowBalance(false);
     } catch (error) {
       console.error("Error fetching ETH balance:", error);
     }
   };
 
   return (
-    <div className="p-4 bg-white shadow-md rounded-xl w-full max-w-md mx-auto text-center">
-      <h3 className="text-lg font-bold mb-4">Check Sepolia ETH Balance</h3>
-      <button
-        onClick={getMyEthBalance}
-        className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-xl transition duration-300"
-      >
-        Get ETH Balance
-      </button>
+    <div className="p-6 bg-white shadow-lg rounded-2xl w-full max-w-md mx-auto text-center space-y-4">
+      <h3 className="text-xl font-semibold text-gray-800">
+        🔍 Check Sepolia ETH Balance
+      </h3>
 
       {balanceInfo.address && (
-        <div className="mt-4 text-left">
-          <p><strong>Address:</strong> {balanceInfo.address}</p>
-          <p><strong>ETH:</strong> {balanceInfo.eth} Sepolia ETH</p>
-        </div>
+        <>
+          <button
+            onClick={() => setShowBalance((prev) => !prev)}
+            className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 rounded-xl transition duration-300"
+          >
+            {showBalance ? "🔼 Hide Balance" : "🔽 Show Balance"}
+          </button>
+
+          {showBalance && (
+            <div className="pt-4 border-t text-left space-y-1 text-gray-700">
+              <p>
+                <span className="font-semibold">Address:</span>{" "}
+                {balanceInfo.address}
+              </p>
+              <p>
+                <span className="font-semibold">ETH:</span> {balanceInfo.eth}{" "}
+                Sepolia ETH
+              </p>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
